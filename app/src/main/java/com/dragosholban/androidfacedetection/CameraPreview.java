@@ -3,6 +3,7 @@ package com.dragosholban.androidfacedetection;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.PixelFormat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -18,8 +19,9 @@ public class CameraPreview extends ViewGroup {
     private static final String TAG = "CameraPreview";
 
     private Context mContext;
-    private SurfaceView mSurfaceView;
+    public  SSurface mSurfaceView;
     private boolean mStartRequested;
+    public SurfaceHolder mSurfaceHolder;
     private boolean mSurfaceAvailable;
     private CameraSource mCameraSource;
 
@@ -30,9 +32,8 @@ public class CameraPreview extends ViewGroup {
         mContext = context;
         mStartRequested = false;
         mSurfaceAvailable = false;
-
-        mSurfaceView = new SurfaceView(context);
-        mSurfaceView.getHolder().addCallback(new SurfaceCallback());
+        mSurfaceView = new SSurface(context,attrs);
+        mSurfaceView.getHolder().addCallback(mSurfaceView);
         addView(mSurfaceView);
     }
 
@@ -88,7 +89,19 @@ public class CameraPreview extends ViewGroup {
         }
     }
 
-    private class SurfaceCallback implements SurfaceHolder.Callback {
+    private class SSurface extends SurfaceView implements SurfaceHolder.Callback {
+
+        public SSurface(Context context, AttributeSet attrs) {
+            super(context, attrs);
+            // TODO Auto-generated constructor stub
+            mContext = context;
+            mSurfaceHolder = getHolder();
+            mSurfaceHolder.setFormat(PixelFormat.TRANSPARENT);//translucent半透明 transparent透明
+            mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+            mSurfaceHolder.addCallback(this);
+        }
+
+
         @Override
         public void surfaceCreated(SurfaceHolder surface) {
             mSurfaceAvailable = true;
@@ -163,5 +176,8 @@ public class CameraPreview extends ViewGroup {
 
         Log.d(TAG, "isPortraitMode returning false by default");
         return false;
+    }
+    public SurfaceHolder getSurfaceHolder(){
+        return mSurfaceHolder;
     }
 }

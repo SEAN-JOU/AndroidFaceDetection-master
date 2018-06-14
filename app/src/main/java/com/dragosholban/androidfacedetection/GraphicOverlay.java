@@ -1,15 +1,19 @@
 package com.dragosholban.androidfacedetection;
 
+
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.View;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+
+
 public class GraphicOverlay extends View {
+
     private final Object mLock = new Object();
     private int mPreviewWidth;
     private float mWidthScaleFactor = 1.0F;

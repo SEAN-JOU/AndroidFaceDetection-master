@@ -5,11 +5,17 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceHolder;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -22,11 +28,13 @@ import com.google.android.gms.vision.face.FaceDetector;
 
 import java.io.IOException;
 
-public class VideoFaceDetectionActivity extends AppCompatActivity {
+public class VideoFaceDetectionActivity extends AppCompatActivity implements CameraInterface.CamOpenOverCallback {
 
     private CameraPreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     private CameraSource mCameraSource = null;
+    float previewRate = -1f;
+    ImageView image;
 
     private static final String TAG = "VideoFaceDetection";
     private static final int REQUEST_CAMERA_PERMISSION = 1;
@@ -39,6 +47,7 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
 
         mPreview = findViewById(R.id.preview);
         mGraphicOverlay = findViewById(R.id.faceOverlay);
+        image=  findViewById(R.id.imv);
 
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -47,6 +56,8 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
         } else {
             createCameraSource();
         }
+
+
     }
 
     @Override
@@ -71,8 +82,6 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
                 .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
                 .build();
-
-
     }
 
     /**
@@ -81,8 +90,6 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-
 
         startCameraSource();
     }
@@ -128,6 +135,12 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
 
         }
     }
+    @Override
+    public void cameraHasOpened() {
+        // TODO Auto-generated method stub
+        SurfaceHolder holder = mPreview.getSurfaceHolder();
+        CameraInterface.getInstance().doStartPreview(holder, previewRate);
+    }
 
     /**
      * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
@@ -140,11 +153,33 @@ public class VideoFaceDetectionActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(VideoFaceDetectionActivity.this,"123",Toast.LENGTH_LONG).show();
+                        Toast.makeText(VideoFaceDetectionActivity.this,"是帥哥",Toast.LENGTH_SHORT).show();
+                        CameraInterface.getInstance().doTakePicture();
                     }});
 
             return new GraphicFaceTracker(mGraphicOverlay);
         }
+    }
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
 }
